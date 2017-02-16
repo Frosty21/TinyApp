@@ -1,0 +1,27 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <% include ../partials/_header %>
+</head>
+
+<body>
+
+  <div style="background-color:yellow;color:black;border:1px solid black;margin:5px">
+    <h3>Modify URL Here</h3>
+    <a>Your URL is: </a><a href="<%= longURL %>" target="_blank"><%= shortURL %></a> --> <a href="<%= longURL %>" target="_blank"><%= longURL %></a>
+
+    <form action="/urls/<%= shortURL %>/edit" method="POST" style="margin:10px;">
+      <label for="longURL">Enter the new long URL:</label>
+      <input id="longURL" type="text" name="longURL" placeholder="http://" style="width: 300px">
+      <input name="editUrl" type="submit" value="Submit">
+    </form>
+
+  </div>
+
+  <% include ../partials/_footer %>
+
+</body>
+
+</html>

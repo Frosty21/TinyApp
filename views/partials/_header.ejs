@@ -1,0 +1,31 @@
+<head>
+  <style>
+    h1 { color: red; }
+  </style>
+
+  <div style="background-color:orange;color:black;border:1px solid black;margin:5px">
+
+    <h1> Welcome to My TinyURL </h1>
+
+    <% if (userID !== undefined && userID !== '') { %>
+
+      <h3>Hello <%= userID %>!</h3>
+
+      <form action ="/" method="POST" style="margin:10px">
+        <input name="logout" type="submit" value="log out">
+      </form>
+
+    <% } else { %>
+
+      <form action="/login" method="GET" style="margin:10px;">
+        <input name="login" type="submit" value="Log In">
+      </form>
+
+      <form action="/register" method="GET" style="margin:10px;">
+        <input name="register" type="submit" value="Register">
+      </form>
+
+    <% } %>
+
+  </div>
+</head>
