@@ -18,8 +18,6 @@ app.use(bodyParser.urlencoded({
 app.set("view engine", "ejs");
 app.use(express.static('public'));
 
-
-// declare global variables used in this code.
 // urlDatabase object contains short and long url data for a given user.
 // users object contains the user credentials.
 const urlDatabase = {};
@@ -29,9 +27,8 @@ const users = {};
 // fcn renders login page if user has not logged in.
 function checkIfLoggedIn(req, res, path) {
   if (!req.session.userID) {
-    response.status(403).send(
+    res.status(401).send(
       "Please go back and <a href='/login'>log-in</a> first!");
-    });
   }
 }
 
@@ -63,7 +60,6 @@ var checkNewUrlAndAdd = (url, user, urlDataBaseKey, redirectUrl, res) => {
         creationTime: new Date(),
         visits: 0
       };
-      res.statusCode = 302;
     }
     res.redirect(redirectUrl);
   });
@@ -105,7 +101,7 @@ app.get("/urls", (req, res) => {
     userID: req.session.userID,
     urls: urlDatabase[req.session.userID]
   };
-  res.statusCode = 200;
+  res.status(200);
   res.render("urls/index", templateVars);
 });
 
@@ -113,18 +109,19 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   console.log("--> inside get(/urls/new)");
   checkIfLoggedIn(req, res, "/urls/new");
-  if (req.session.userId && [req.session.userId]) {
-
-
-    res.statusCode = 200;
-    res.render("urls/new", {
-      userID: req.session.userID
-    });
-  }
-
+    let templateVars = {
+    userID: req.session.userID,
+    urls: urlDatabase[req.session.userID]
+    };
+  res.status(200);
+  res.render("urls/new", templateVars);
 });
 
-// go to urls/show when valid short url is entered and logged in and url list exists.
+// checkIfLoggedIn will return the 401
+// 403 is the else of the 200 statuscode 
+// checkForUrlData will return the 404
+// go to urls/show when valid short url is entered and logged in and url list exists. 
+// cant use "urls/:id" otherwise will show link twice used "urls/show"
 app.get("/urls/:id", (req, res) => {
   console.log("--> inside get(/urls/:id)");
   checkIfLoggedIn(req, res);
@@ -135,14 +132,14 @@ app.get("/urls/:id", (req, res) => {
       shortURL: req.params.id,
       longURL: urlDatabase[req.session.userID][req.params.id].longUrl
     };
-    res.statusCode = 200;
+    res.status(200);
     res.render("urls/show", templateVars);
   } else {
     let templateVars = {
       userID: req.session.userID,
       urls: urlDatabase[req.session.userID]
     };
-    res.statusCode = 404;
+    res.status(403);
     res.render("urls/index", templateVars);
   }
 });
@@ -155,7 +152,6 @@ app.get("/u/:shortURL", (req, res) => {
 
   if (urlDatabase[req.session.userID][req.params.shortURL] !== undefined) {
     let longURL = urlDatabase[req.session.userID][req.params.shortURL].longUrl;
-    res.statusCode = 302;
     urlDatabase[req.session.userID][req.params.shortURL].visits += 1;
     res.redirect(longURL);
   } else {
@@ -176,7 +172,6 @@ app.get("/register", (req, res) => {
       userID: req.session.userID,
       urls: urlDatabase[req.session.userID]
     };
-    res.statusCode = 302;
     res.render("urls", templateVars);
   } else {
     res.statusCode = 200;
@@ -194,14 +189,14 @@ app.get("/login", (req, res) => {
       userID: req.session.userID,
       urls: urlDatabase[req.session.userID]
     };
-    res.statusCode = 302;
+    res.status(200);
     res.render("urls", templateVars);
   } else {
-    res.statusCode = 200;
     res.render("login/login", {
       userID: req.session.userID
     });
   }
+  res.statusCode = 200;
 });
 
 // go to the home page.
