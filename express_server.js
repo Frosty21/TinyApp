@@ -1,5 +1,3 @@
-"use strict";
-
 const express = require('express');
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
@@ -9,36 +7,36 @@ const request = require('request');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
-app.use(bodyParser.urlencoded({extended: true}));
-app.set("view engine", "ejs");
-app.use(express.static('public'));
-
-// two cookie keys are created key1 that is from register and key2
-// is for the comparison test with key1
 app.set('trust proxy', 1);
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2']
 }));
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+app.set("view engine", "ejs");
+app.use(express.static('public'));
 
 
 // declare global variables used in this code.
 // urlDatabase object contains short and long url data for a given user.
 // users object contains the user credentials.
-let urlDatabase = {};
-let users = {};
+const urlDatabase = {};
+const users = {};
 
 // -------------------- Global Functions ----------------------
 // fcn renders login page if user has not logged in.
-function checkIfLoggedIn (req, res, path) {
-  if (req.session.userID === undefined) {
-    res.statusCode = (path === "/") ? 302 : 401;
-    res.render("login/login", { userID: undefined });
+function checkIfLoggedIn(req, res, path) {
+  if (!req.session.userID) {
+    response.status(403).send(
+      "Please go back and <a href='/login'>log-in</a> first!");
+    });
   }
 }
 
 // fcn urls index if url list does not exist yet
-function checkForUrlData (req, res) {
+function checkForUrlData(req, res) {
   if (urlDatabase[req.session.userID] === undefined) {
     let templateVars = {
       userID: req.session.userID,
@@ -50,13 +48,15 @@ function checkForUrlData (req, res) {
 }
 
 // fcn checks for valid http/https url when adding or editting a url
-var checkNewUrlAndAdd = (url, user, urlDataBaseKey, redirectUrl, res) =>  {
+var checkNewUrlAndAdd = (url, user, urlDataBaseKey, redirectUrl, res) => {
   let tempUrl = url;
   if (!tempUrl.includes("http://", 0) && !tempUrl.includes("https://")) {
     tempUrl = `http://${tempUrl}`;
   }
   request(tempUrl, (error, response, body) => {
-    if (urlDatabase[user] === undefined) { urlDatabase[user] = {}; }
+    if (urlDatabase[user] === undefined) {
+      urlDatabase[user] = {};
+    }
     if (!error) {
       urlDatabase[user][urlDataBaseKey] = {
         longUrl: tempUrl,
@@ -84,15 +84,18 @@ function randomString(length) {
 // go to urls/index when root url is entererd and logged in.
 app.get("/", (req, res) => {
   console.log("--> inside get(/)");
-  checkIfLoggedIn(req, res, "/");
+  // checkIfLoggedIn(req, res, "/");
+  if (req.session.userID === undefined) {
+    res.render("login/login", {
+      userID: undefined
+    });
+  }
   let templateVars = {
     userID: req.session.userID,
     urls: urlDatabase[req.session.userID]
   };
-  res.statusCode = 302;
   res.render("urls/index", templateVars);
 });
-
 
 // go to urls/index when /urls is entererd and logged in.
 app.get("/urls", (req, res) => {
@@ -110,8 +113,15 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   console.log("--> inside get(/urls/new)");
   checkIfLoggedIn(req, res, "/urls/new");
-  res.statusCode = 200;
-  res.render("urls/new", { userID: req.session.userID } );
+  if (req.session.userId && [req.session.userId]) {
+
+
+    res.statusCode = 200;
+    res.render("urls/new", {
+      userID: req.session.userID
+    });
+  }
+
 });
 
 // go to urls/show when valid short url is entered and logged in and url list exists.
@@ -170,7 +180,9 @@ app.get("/register", (req, res) => {
     res.render("urls", templateVars);
   } else {
     res.statusCode = 200;
-    res.render("login/register", { userID: req.session.userID });
+    res.render("login/register", {
+      userID: req.session.userID
+    });
   }
 
 });
@@ -186,20 +198,26 @@ app.get("/login", (req, res) => {
     res.render("urls", templateVars);
   } else {
     res.statusCode = 200;
-    res.render("login/login", { userID: req.session.userID });
+    res.render("login/login", {
+      userID: req.session.userID
+    });
   }
 });
 
 // go to the home page.
 app.get("/home", (req, res) => {
   res.statusCode = 200;
-  res.render("home/index", { userID: req.session.userID });
+  res.render("home/index", {
+    userID: req.session.userID
+  });
 });
 
 // go to home page for all other misc urls
 app.get("*", (req, res) => {
   res.statusCode = 404;
-  res.render("home/index", { userID: req.session.userID });
+  res.render("home/index", {
+    userID: req.session.userID
+  });
 });
 
 
@@ -230,7 +248,7 @@ app.post("/login", (req, res) => {
   console.log("--> inside post(/login)");
   let statusCode = 401;
   if (users[req.body.email]) {
-    bcrypt.compare(req.body.password, users[req.body.email].password, (err, response) => {
+    bcrypt.compare(req.body.password, users[req.body.email].password, function (err, response) {
       if (!err && response) {
         req.session.userID = req.body.email;
         res.redirect("/");
@@ -257,7 +275,7 @@ app.post("/register", (req, res) => {
   if (res.statusCode['toString']()[0] === '4') {
     res.send("user name / password not accepted!");
   } else {
-    bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+    bcrypt.hash(req.body.password, saltRounds, function (err, hash) {
       if (err) {
         res.send("user name / password not accepted!");
       } else {
