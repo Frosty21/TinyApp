@@ -1,31 +1,71 @@
-const express = require('express');
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
+const methodOverride = require("method-override");
+const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 const request = require('request');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
-
-app.set('trust proxy', 1);
-app.use(cookieSession({
-  name: 'session',
-  keys: ['key1', 'key2']
-}));
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
 app.set("view engine", "ejs");
 app.use(express.static('public'));
 
+app.set('trust proxy', 1);
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2'],
+  maxAge: 24 * 60 * 60 * 1000
+}));
+
+// listen on port.
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
+
 // urlDatabase object contains short and long url data for a given user.
 // users object contains the user credentials.
+
+// urlDatabase contains {shortURL : {longURL, dateCreated: new Date(), vistis:, uniqueVisits:, vistorId:, vistorIp, visitorAgent:}} example
+// "b2xVn2": { id: "http://www.lighthouselabs.ca",
+//             url: "http://www.lighthouselabs.ca"
+//             userid: 'Lydia',
+//             dateCreated: '2017-09-11',
+//             views: '0',
+//             dateCreated: [],
+//             vistorId: [],
+//             vistorIp: [],
+//             vistorAgent: [],
+//             },
+
+
 const urlDatabase = {};
+// users containss UsersRandomID : {id:, email:, password:} example
+//   "userRandomID": {
+//     id: "userRandomID",
+//     email: "user@example.com",
+//     password: "purple-monkey-dinosaur"
+//   }
+
 const users = {};
+
+app.use((req, res, next) => {
+  res.locals.useremail = users[req.session.userID]
+    ? req.session.useremail
+    : null;
+  res.locals.urls = urlDatabase;
+  // res.locals.userID = res.session.userID;
+  console.log(res.locals.urls);
+  next();
+});
 
 // -------------------- Global Functions ----------------------
 // fcn renders login page if user has not logged in.
 function checkIfLoggedIn(req, res, path) {
+  console.log(res.locals);
   if (!req.session.userID) {
     res.status(401).send(
       "Please go back and <a href='/login'>log-in</a> first!");
@@ -34,11 +74,13 @@ function checkIfLoggedIn(req, res, path) {
 
 // fcn urls index if url list does not exist yet
 function checkForUrlData(req, res) {
-  if (urlDatabase[req.session.userID] === undefined) {
+  if (urlDatabase[req.session.userID] !== undefined) {
     let templateVars = {
-      userID: req.session.userID,
-      urls: urlDatabase[req.session.userID]
+      urls: urlDatabase[req.session.userID],
+      userID: req.session.userID
+
     };
+  } else {
     res.statusCode = 404;
     res.render("urls/index", templateVars);
   }
@@ -57,6 +99,7 @@ var checkNewUrlAndAdd = (url, user, urlDataBaseKey, redirectUrl, res) => {
     if (!error) {
       urlDatabase[user][urlDataBaseKey] = {
         longUrl: tempUrl,
+        user: user,
         creationTime: new Date(),
         visits: 0
       };
@@ -65,8 +108,33 @@ var checkNewUrlAndAdd = (url, user, urlDataBaseKey, redirectUrl, res) => {
   });
 };
 
+// check users password to the stored user object
+function getUserPass(emailTest, passTest){
+  for(var item in users){
+    if(users[item].email === emailTest && bcrypt.compare(passTest, users[item].password)){
+      return users[item].id;
+    }
+  }
+  return false;
+}
+
+// gives back a list of tinyURLs for that user
+function getUsersTinyUrls(user_id){
+  let userUrlList = {};
+  for(let item in urlDB){
+    if(user_id === urlDB[item].userid){
+      userUrlList[item] = {
+        id: item,
+        url: urlDB[item].url,
+        userid: user_id};
+    }
+  }
+  return userUrlList;
+}
+
+
 // Returns a random string of length given in the argument from a selection of chars.
-function randomString(length) {
+function generateRandomString(length) {
   const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   var result = '';
   for (var i = length; i > 0; --i) {
@@ -90,17 +158,21 @@ app.get("/", (req, res) => {
     userID: req.session.userID,
     urls: urlDatabase[req.session.userID]
   };
-  res.render("urls/index", templateVars);
+  res.render("/urls", templateVars);
 });
 
 // go to urls/index when /urls is entererd and logged in.
 app.get("/urls", (req, res) => {
   console.log("--> inside get(/urls)");
   checkIfLoggedIn(req, res, "/urls");
+  console.log(urlDatabase);
+
   let templateVars = {
-    userID: req.session.userID,
-    urls: urlDatabase[req.session.userID]
+    urls: urlDatabase,
+    userID: req.session.userID
   };
+  console.log(templateVars
+  );
   res.status(200);
   res.render("urls/index", templateVars);
 });
@@ -109,18 +181,21 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   console.log("--> inside get(/urls/new)");
   checkIfLoggedIn(req, res, "/urls/new");
-    let templateVars = {
-    userID: req.session.userID,
-    urls: urlDatabase[req.session.userID]
-    };
+
+
+  let templateVars = {
+    urls: urlDatabase[req.session.userID],
+    userID: req.session.userID
+  };
+  console.log(urlDatabase);
   res.status(200);
   res.render("urls/new", templateVars);
 });
 
 // checkIfLoggedIn will return the 401
-// 403 is the else of the 200 statuscode 
+// 403 is the else of the 200 statuscode
 // checkForUrlData will return the 404
-// go to urls/show when valid short url is entered and logged in and url list exists. 
+// go to urls/show when valid short url is entered and logged in and url list exists.
 // cant use "urls/:id" otherwise will show link twice used "urls/show"
 app.get("/urls/:id", (req, res) => {
   console.log("--> inside get(/urls/:id)");
@@ -128,8 +203,8 @@ app.get("/urls/:id", (req, res) => {
   checkForUrlData(req, res);
   if (urlDatabase[req.session.userID][req.params.id] !== undefined) {
     let templateVars = {
-      userID: req.session.userID,
       shortURL: req.params.id,
+      userID: req.session.userID,
       longURL: urlDatabase[req.session.userID][req.params.id].longUrl
     };
     res.status(200);
@@ -144,25 +219,43 @@ app.get("/urls/:id", (req, res) => {
   }
 });
 
-// go to link when valid short url is entered and logged in and url list exists.
+// go to link when valid short url is entered not need to be login
 app.get("/u/:shortURL", (req, res) => {
-  console.log("--> inside get(/u/:shortURL)");
-  checkIfLoggedIn(req, res);
-  checkForUrlData(req, res);
-
-  if (urlDatabase[req.session.userID][req.params.shortURL] !== undefined) {
-    let longURL = urlDatabase[req.session.userID][req.params.shortURL].longUrl;
-    urlDatabase[req.session.userID][req.params.shortURL].visits += 1;
+  console.log("testing shorturl ", req.params.shortURL);
+  if (req.params.shortURL !== null) {
+    let shortURL = req.params.shortURL;
+    let longURL = urlDatabase[shortURL].url;
     res.redirect(longURL);
   } else {
-    let templateVars = {
-      userID: req.session.userID,
-      urls: urlDatabase[req.session.userID]
-    };
-    res.statusCode = 404;
-    res.render("urls/index", templateVars);
+    res.redirect("/login");
   }
 });
+
+// console.log("--> inside get(/u/:shortURL)");
+// checkIfLoggedIn(req, res);
+// checkForUrlData(req, res);
+// total view count
+
+
+// if (urlDatabase[req.session.userID][req.params.shortURL]) {
+//   urlDatabase[req.session.userID][req.params.shortURL].views += 1;
+//       // urlDatabase[req.session.userID][req.params.shortURL].views += 1;
+//   // unique view count in cookie
+//   if (!req.cookies[req.session.userID][req.params.shortURL]) {
+//     res.cookie([req.params.shortURL], 1)
+//     urlDatabase[req.session.userID][req.params.shortURL].uniqueViews++
+//   }
+
+// res.redirect(longURL);
+// } else {
+//   let templateVars = {
+//     userID: req.session.userID,
+//     urls: urlDatabase[req.session.userID]
+//   };
+// res.statusCode = 404;
+// res.render("urls/index", templateVars);
+// }
+// });
 
 // go to register page.
 app.get("/register", (req, res) => {
@@ -220,7 +313,7 @@ app.get("*", (req, res) => {
 // post a new url for the user.
 app.post("/urls", (req, res) => {
   console.log("--> inside post(/urls)");
-  let rndmStr = randomString(6);
+  let rndmStr = generateRandomString(6);
   let tempUrl = req.body.longURL;
   checkNewUrlAndAdd(tempUrl, req.session.userID, rndmStr, "/urls", res);
 });
@@ -290,9 +383,4 @@ app.post("/", (req, res) => {
   console.log("--> inside post(/)");
   req.session.userID = undefined;
   res.redirect('/');
-});
-
-// listen on port.
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
 });
