@@ -78,7 +78,7 @@ app.use(function(req, res, next) {
 
 // -------------------- Functions ----------------------
 function urlsForUser(id) {
-  return Object.values(urlDatabase).filter((url) => {
+  return Object.keys(urlDatabase).filter((url) => {
     return url.owner === id;
   });
 }
@@ -164,18 +164,19 @@ app.get("/u/:shortURL", checkShortURL, (req, res) => {
 
 //GET individual URL page (with update form)
 app.get("/urls/:id", checkShortURL, checkUserLoggedIn, checkShortUrlOwner, (req, res) => {
-    res.render("urls_show", { url: urlDatabase[req.params.id] } );
+  res.render("urls_show", { url: urlDatabase[req.params.id] } );
 });
 
 // ------------------------ POSTS ------------------------------
 //POST register route
 app.post("/register", (req, res) => {
-  let emailExists = Object.values(users).some((user) => {
-    return user.email === req.body.email;
-  });
-  if (emailExists) {
-    res.status(400).send("Email already in use.");
-  } else if (!req.body.email || !req.body.password) {
+  for (let list in users){
+    if(users[list]['email'] === req.body.email){
+      res.status(400).send("Email already in use.");
+      return;
+    }
+  }
+  if (!req.body.email || !req.body.password) {
     res.status(400).send("Specify both your email and a password.");
   } else {
     let userID = generateHash();
@@ -196,7 +197,10 @@ app.post("/register", (req, res) => {
 
 //Login route
 app.post("/login", (req, res) => {
-  let existingUser = Object.values(users).find((user) => {
+  // let existingUser = users.forEach(function(user) {
+  //   return user.email === req.body.email;
+  // });
+  let existingUser = Object.keys(users).find((user) => {
     return user.email === req.body.email;
   });
   if (!existingUser || !(bcrypt.compareSync(req.body.password, existingUser.password))) {
