@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>TinyApp</title>
+</head>
+
+<body>
+  <header>
+    <% include ./partials/_header %>
+  </header>
+  <main>
+    <form action="/urls" method="POST">
+      <label for="longURL"><h1> Create New ShortURL</h1></label>
+      <input id="longURL" type="text" name="longURL" placeholder="http://">
+      <button type="submit">Create</button>
+    </form>
+  </main>
+</body>
+
+</html>

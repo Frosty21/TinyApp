@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>TinyApp</title>
+  <style>
+    td {
+      padding: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <% include ./partials/_header %>
+  </header>
+  <main>
+    <h1> Your ShortURLs </h1>
+    <a href="/urls/new">Create new ShortURL</a>
+    <table id="urls">
+      <tr id="header-row">
+        <td>ShortURL</td>
+        <td>Location</td>
+        <td>Created</td>
+        <td>Visits</td>
+        <td>Unique Visitors</td>
+        <td>Edit/Track</td>
+        <td>Delete</td>
+      </tr>
+      <% urls.forEach((url) => { %>
+        <tr>
+          <td>
+            <a href="/u/<%= url.id %>">
+              <%= url.id %>
+            </a>
+          </td>
+          <td>
+            <%= url.url %>
+          </td>
+          <td>
+            <%= url.created.toLocaleString() %>
+          </td>
+          <td>
+            <%= url.visits %>
+          </td>
+          <td>
+            <%= url.uniqueVisits %>
+          </td>
+          <td><a href="/urls/<%= url.id %>">Edit</a></td>
+          <td>
+            <form method="POST" action="/urls/<%= url.id %>/delete?_method=DELETE">
+              <button id="shortURL" type="Submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+        <% }); %>
+    </table>
+  </main>
+</body>
+
+</html>

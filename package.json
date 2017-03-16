@@ -1,20 +1,32 @@
+
 {
   "name": "TinyApp",
-  "version": "1.1.1beta",
-  "main": "express_server.js",
+  "version": "1.0.0",
+  "description": "A tiny url shortener",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "bcrypt": "^0.8.7",
-    "body-parser": "^1.15.2",
-    "cookie-session": "^2.0.0-alpha.1",
-    "ejs": "^2.5.2",
-    "express": "^4.14.0"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Frosty21/TinyApp.git"
   },
-  "devDependencies": {},
-  "description": ""
+  "author": "cwkosman",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Frosty21/TinyApp/issues"
+  },
+  "homepage": "https://github.com/Frosty21/TinyApp#readme",
+  "dependencies": {
+    "bcrypt": "^1.0.2",
+    "body-parser": "^1.16.1",
+    "cookie-parser": "^1.4.3",
+    "cookie-session": "^2.0.0-alpha.3",
+    "ejs": "^2.5.5",
+    "express": "^4.14.1",
+    "method-override": "^2.3.7"
+  },
+  "engines": {
+    "node": ">=v7.0.0"
+  }
 }

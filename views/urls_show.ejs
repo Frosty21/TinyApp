@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>TinyApp</title>
+</head>
+
+<body>
+  <header>
+    <% include ./partials/_header %>
+  </header>
+  <main>
+    <h1>
+      <%= url.id %>
+    </h1>
+    <section id="edit">
+      <h2>Update ShortURL</h2>
+      <form method="POST" action="/urls/<%= url.id %>?_method=PUT" style="display: inline;">
+        <label for="longURL"></label>
+        <p>Created
+          <%= url.created.toLocaleString() %>
+        </p>
+        <p>Visited
+          <%= url.visits %> times by
+            <%= url.uniqueVisits %> visitors</p>
+        <input id="longURL" type="text" name="longURL" value="<%= url.url %>" style="width:400px">
+        <button type="submit">Update</button>
+      </form>
+      <form method="POST" action="/urls/<%= url.id %>/delete?_method=DELETE" style="display: inline;">
+        <button id="shortURL" type="Submit">Delete</button>
+      </form>
+    </section>
+    <section>
+      <h2>History</h2>
+      <ul>
+        <% let i = 1 %>
+          <% for (let visitor in url.visitLog) { %>
+            <li>User
+              <%= i %> <small>(<%= visitor %>)</small></li>
+            <ul>
+              <% url.visitLog[visitor].forEach((visit) => { %>
+                <li>
+                  <%= visit.toLocaleString() %>
+                </li>
+                <% }) %>
+            </ul>
+            <% i++ %>
+              <% } %>
+      </ul>
+    </section>
+  </main>
+</body>
+
+</html>
