@@ -197,9 +197,6 @@ app.post("/register", (req, res) => {
 
 //Login route
 app.post("/login", (req, res) => {
-  // let existingUser = users.forEach(function(user) {
-  //   return user.email === req.body.email;
-  // });
   let existingUser = Object.keys(users).find((user) => {
     return user.email === req.body.email;
   });
