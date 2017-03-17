@@ -1,3 +1,4 @@
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
@@ -27,7 +28,7 @@ function generateHash() {
   for (var i = 0; i < 6; i++) {
     short[i] = chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return(short.join(''));
+  return (short.join(''));
 }
 
 const urlDatabase = {
@@ -61,14 +62,16 @@ const urlDatabase = {
 };
 
 app.set("view engine", "ejs");
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 app.use(methodOverride('_method'));
 app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: [process.env.SESSION_SECRET || 'tiny-development']
 }));
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   res.locals.email = '';
   if (users[req.session.userId]) {
     res.locals.email = users[req.session.userId].email;
@@ -78,9 +81,14 @@ app.use(function(req, res, next) {
 
 // -------------------- Functions ----------------------
 function urlsForUser(id) {
-  return Object.keys(urlDatabase).filter((url) => {
+  return Object.keys(urlDatabase).map(id => urlDatabase[id]).filter((url) => {
     return url.owner === id;
   });
+
+//   return Object.keys.
+//   map(urlDatabase).filter((url) => {
+//     return url.owner === id;
+//   });
 }
 
 function checkUserLoggedIn(req, res, next) {
@@ -91,7 +99,7 @@ function checkUserLoggedIn(req, res, next) {
 }
 
 function checkShortURL(req, res, next) {
-  if (!(urlDatabase.hasOwnProperty(req.params.id))) {
+  if (!(urlDatabase.hasOwnProperty(req.params.id)) && !(urlDatabase.hasOwnProperty(req.params.shortURL))) {
     res.status(404).send("Not found ShortURL<br>This ShortURL does not exist.");
   }
   next();
@@ -104,6 +112,18 @@ function checkShortUrlOwner(req, res, next) {
   next();
 }
 
+var checkNewUrlAndAdd = (longURL) => {
+  if (!longURL.startsWith("http://") && !longURL.startsWith("https://")) {
+    return `http://${longURL}`;
+  } else {
+    return longURL;
+  }
+};
+
+function validateEmail(email) {
+  var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(email);
+}
 
 //------------------------ GETS ------------------------------
 //Redirect from root
@@ -164,20 +184,22 @@ app.get("/u/:shortURL", checkShortURL, (req, res) => {
 
 //GET individual URL page (with update form)
 app.get("/urls/:id", checkShortURL, checkUserLoggedIn, checkShortUrlOwner, (req, res) => {
-  res.render("urls_show", { url: urlDatabase[req.params.id] } );
+  res.render("urls_show", {
+    url: urlDatabase[req.params.id]
+  });
 });
 
 // ------------------------ POSTS ------------------------------
 //POST register route
 app.post("/register", (req, res) => {
-  for (let list in users){
-    if(users[list]['email'] === req.body.email){
+  for (let list in users) {
+    if (users[list]['email'] === req.body.email) {
       res.status(400).send("Email already in use.");
       return;
     }
   }
-  if (!req.body.email || !req.body.password) {
-    res.status(400).send("Specify both your email and a password.");
+  if (!validateEmail(req.body.email) || !req.body.password) {
+    res.status(400).send("Specify correctly both your email and a password.");
   } else {
     let userID = generateHash();
     if (users[userID]) {
@@ -211,15 +233,13 @@ app.post("/login", (req, res) => {
 //Create new url
 app.post("/urls", (req, res) => {
   let shortURL = generateHash();
-  if (urlDatabase[shortURL]) {
-    while(urlDatabase[shortURL]) {
-      shortURL = generateHash();
-    }
+  while (urlDatabase[shortURL]) {
+    shortURL = generateHash();
   }
   urlDatabase[shortURL] = {
     "id": shortURL,
     "owner": req.session.userId,
-    "url": req.body.longURL,
+    "url": checkNewUrlAndAdd(req.body.longURL),
     "created": new Date(),
     "visits": 0,
     "visitLog": {}
@@ -235,14 +255,13 @@ app.post("/logout", (req, res) => {
 
 const server = app.listen(port, () => {
   const address = server.address();
-  console.log(address);
   console.log(`Server listening on ${address.port}`);
 });
 
 // ------------------------ PUTS ------------------------------
 //Update an existing URL
 app.put("/urls/:id", checkShortURL, checkUserLoggedIn, checkShortUrlOwner, (req, res) => {
-  urlDatabase[req.params.id].url = req.body.longURL;
+  urlDatabase[req.params.id].url = checkNewUrlAndAdd(req.body.longURL);
   res.redirect("/urls");
 });
 
@@ -254,4 +273,3 @@ app.delete("/urls/:id/delete", (req, res) => {
     res.redirect("/urls");
   }
 });
-
