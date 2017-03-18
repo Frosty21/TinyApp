@@ -84,16 +84,28 @@ function urlsForUser(id) {
   return Object.keys(urlDatabase).map(id => urlDatabase[id]).filter((url) => {
     return url.owner === id;
   });
+}
 
-//   return Object.keys.
-//   map(urlDatabase).filter((url) => {
-//     return url.owner === id;
+// function existingForUser(user) {
+//   return Object.keys(users).map(user => users[user]).find((user) => {
+//     return user.email === req.body.email;
 //   });
+// }
+
+// Check users password
+function getUserPass(testEmail, testPass){
+  for(var item in users){
+    if(users[item].email === testEmail && bcrypt.compareSync(testPass, users[item].password)){
+      return users[item].id;
+    }
+  }
+  return false;
 }
 
 function checkUserLoggedIn(req, res, next) {
   if (!res.locals.email) {
     res.status(401).send(`Not logged in.<br>Please go back and <a href="/login">Login</a> first!`);
+    return;
   }
   next();
 }
@@ -101,6 +113,7 @@ function checkUserLoggedIn(req, res, next) {
 function checkShortURL(req, res, next) {
   if (!(urlDatabase.hasOwnProperty(req.params.id)) && !(urlDatabase.hasOwnProperty(req.params.shortURL))) {
     res.status(404).send("Not found ShortURL<br>This ShortURL does not exist.");
+    return;
   }
   next();
 }
@@ -108,6 +121,7 @@ function checkShortURL(req, res, next) {
 function checkShortUrlOwner(req, res, next) {
   if (urlDatabase[req.params.id].owner !== req.session.userId) {
     res.status(403).send(`Unauthorized: you are not the owner of this ShortURL.`);
+    return;
   }
   next();
 }
@@ -219,10 +233,10 @@ app.post("/register", (req, res) => {
 
 //Login route
 app.post("/login", (req, res) => {
-  let existingUser = Object.keys(users).find((user) => {
-    return user.email === req.body.email;
-  });
-  if (!existingUser || !(bcrypt.compareSync(req.body.password, existingUser.password))) {
+  let email = req.body.email;
+  let password = req.body.password;
+  let existingUser = getUserPass(email, password);
+  if (!existingUser) {
     res.status(403).send("Incorrect credentials");
   } else {
     req.session.userId = existingUser.id;
