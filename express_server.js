@@ -9,18 +9,8 @@ const methodOverride = require('method-override');
 const app = express();
 const port = process.env.PORT || 3000;
 
-const users = {
-  '0b1w4n': {
-    id: '0b1w4n',
-    email: 'uncleben@tatooine.com',
-    password: '$2a$10$xfHRwqy0GUHPd3hTx.uV..VwLmz3RcFbZqoNn0I3f0zOwVWcGeg6m'
-  },
-  "dv4d3r": {
-    id: 'dv4d3r',
-    email: 'vader@empire.com',
-    password: '$2a$10$3UodVb9hjyRPzk690DmHcelYjDmNaFTv05U8OtDFxNg191bM8ZjgC'
-  }
-};
+const users = {};
+const urlDatabase = {};
 
 function generateHash() {
   const short = [];
@@ -30,36 +20,6 @@ function generateHash() {
   }
   return (short.join(''));
 }
-
-const urlDatabase = {
-  "b2xVn2": {
-    "id": "b2xVn2",
-    "owner": "dv4d3r",
-    "url": "http://www.lighthouselabs.ca",
-    "created": new Date(1487011192000),
-    "visits": 0,
-    "uniqueVisits": 0,
-    "visitLog": {}
-  },
-  "9sm5xK": {
-    "id": "9sm5xK",
-    "owner": "dv4d3r",
-    "url": "http://www.google.com",
-    "created": new Date(1487191894000),
-    "visits": 0,
-    "uniqueVisits": 0,
-    "visitLog": {}
-  },
-  "7Gjy67": {
-    "id": "7Gjy67",
-    "owner": "0b1w4n",
-    "url": "http://www.reddit.com",
-    "created": new Date(1487282450000),
-    "visits": 0,
-    "uniqueVisits": 0,
-    "visitLog": {}
-  }
-};
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({
@@ -86,13 +46,6 @@ function urlsForUser(id) {
   });
 }
 
-// function existingForUser(user) {
-//   return Object.keys(users).map(user => users[user]).find((user) => {
-//     return user.email === req.body.email;
-//   });
-// }
-
-// Check users password
 function getUserPass(testEmail, testPass){
   for(var item in users){
     if(users[item].email === testEmail && bcrypt.compareSync(testPass, users[item].password)){
