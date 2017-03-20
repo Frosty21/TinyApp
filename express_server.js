@@ -21,6 +21,8 @@ app.use(cookieSession({
     name: 'session',
     keys: [process.env.SESSION_SECRET || 'tiny-development']
 }));
+
+// -------------------- res locals variables ----------------------
 app.use(function(req, res, next) {
     res.locals.email = '';
     if (users[req.session.userId]) {
