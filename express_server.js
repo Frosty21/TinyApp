@@ -11,15 +11,6 @@ const port = process.env.PORT || 3000;
 const users = {};
 const urlDatabase = {};
 
-function generateHash() {
-    const short = [];
-    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    for (var i = 0; i < 6; i++) {
-        short[i] = chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return (short.join(''));
-}
-
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({
     extended: true
@@ -37,6 +28,16 @@ app.use(function(req, res, next) {
     }
     next();
 });
+
+// -------------------- Helper Functions ----------------------
+function generateHash() {
+    const short = [];
+    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    for (var i = 0; i < 6; i++) {
+        short[i] = chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return (short.join(''));
+}
 
 // -------------------- Functions ----------------------
 function urlsForUser(id) {
