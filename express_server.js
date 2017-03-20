@@ -72,13 +72,13 @@ function checkShortURL(req, res, next) {
 
 function checkShortUrlOwner(req, res, next) {
     if (urlDatabase[req.params.id].owner !== req.session.userId) {
-        res.status(403).send(`Unauthorized: you are not the owner of this ShortURL.`);
+        res.status(403).send("Unauthorized: you are not the owner of this ShortURL.");
         return;
     }
     next();
 }
 
-var checkNewUrlAndAdd = (longURL) => {
+const checkNewUrlAndAdd = (longURL) => {
     if (!longURL.startsWith("http://") && !longURL.startsWith("https://")) {
         return `http://${longURL}`;
     } else {
@@ -87,14 +87,13 @@ var checkNewUrlAndAdd = (longURL) => {
 };
 
 function validateEmail(email) {
-    var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
 }
 
 //------------------------ GETS ------------------------------
 //Redirect from root
 app.get("/", (req, res) => {
-    console.log("email matching is? ", res.locals.email);
     if (res.locals.email) {
         res.redirect("/urls");
     } else {
