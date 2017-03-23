@@ -1,35 +1,36 @@
 {
-  "name": "TinyApp",
-  "version": "1.0.0",
-  "description": "A tiny url shortener",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Frosty21/TinyApp.git"
-  },
-  "author": "cwkosman",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Frosty21/TinyApp/issues"
-  },
-  "homepage": "https://github.com/Frosty21/TinyApp#readme",
-  "dependencies": {
-    "bcrypt": "^1.0.2",
-    "body-parser": "^1.16.1",
-    "cookie-parser": "^1.4.3",
-    "cookie-session": "^2.0.0-alpha.3",
-    "ejs": "^2.5.5",
-    "express": "^4.14.1",
-    "method-override": "^2.3.7",
-    "nodemon": "^1.11.0"
-  },
-  "engines": {
-    "node": ">=v7.0.0"
-  },
-  "devDependencies": {
-    "electron-rebuild": "^1.5.7"
-  }
+    "name": "TinyApp",
+    "version": "1.0.0",
+    "description": "A tiny url shortener",
+    "main": "index.js",
+    "scripts": {
+        "debug": "nodemon -L --debug express_server.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Frosty21/TinyApp.git"
+    },
+    "author": "cwkosman",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Frosty21/TinyApp/issues"
+    },
+    "homepage": "https://github.com/Frosty21/TinyApp#readme",
+    "dependencies": {
+        "bcryptjs": "^2.4.3",
+        "body-parser": "^1.16.1",
+        "cookie-parser": "^1.4.3",
+        "cookie-session": "^2.0.0-alpha.3",
+        "ejs": "^2.5.5",
+        "express": "^4.14.1",
+        "method-override": "^2.3.7",
+        "nodemon": "^1.11.0"
+    },
+    "engines": {
+        "node": ">=v7.0.0"
+    },
+    "devDependencies": {
+        "dotenv": "^4.0.0",
+        "electron-rebuild": "^1.5.7"
+    }
 }
